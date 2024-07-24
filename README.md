@@ -1,7 +1,7 @@
 # SKOLAR
 **Samy Y, 2024**
 
-**ERMOS** is an innovative CMS which allows schools to efficiently manage and distribute their resources.
+**SKOLAR** is an innovative CMS which allows schools to efficiently manage and distribute their resources.
 
 ## Key Features
 
