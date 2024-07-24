@@ -15,7 +15,8 @@ def init_db():
     cursor.execute('''CREATE TABLE IF NOT EXISTS users (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         username TEXT UNIQUE NOT NULL,
-                        password TEXT NOT NULL)''')
+                        password TEXT NOT NULL,
+                        type TEXT NOT NULL)''')
     conn.commit()  # Commit the changes
     conn.close()  # Close the connection
 
@@ -23,10 +24,11 @@ init_db()  # Call the function to initialize the database
 
 # User class inheriting from UserMixin for user authentication
 class User(UserMixin):
-    def __init__(self, id, username, password):
+    def __init__(self, id, username, password, usertype):
         self.id = id
         self.username = username
         self.password = password
+        self.usertype = usertype
 
 # User loader function to load a user from the database based on user ID
 @login_manager.user_loader
@@ -38,7 +40,7 @@ def load_user(user_id):
     conn.close()  # Close the connection
     if user:
         # Return a User object if the user is found
-        return User(id=user[0], username=user[1], password=user[2])
+        return User(id=user[0], username=user[1], password=user[2], usertype=user[3])
     return None  # Return None if the user is not found
 
 @app.route("/")
@@ -60,17 +62,23 @@ def login():
         conn.close()  # Close the connection
         if user:
             # Create a User object and log in the user
-            user_obj = User(id=user[0], username=user[1], password=user[2])
+            user_obj = User(id=user[0], username=user[1], password=user[2], usertype=user[3])
             login_user(user_obj)
             session['user_id'] = user[0]
             session['username'] = username # Store the user ID in the session
+            session['usertype'] = user[3]
             return redirect(url_for("dashboard"))  # Redirect to the dashboard
     return render_template("login.html")  # Render the login.html template
 
 @app.route("/dashboard")
 @login_required  # Ensure that only logged-in users can access this route
 def dashboard():
-    return render_template("dashboard.html", username=session.get('username', 'Guest'))  # Retrieve the username from the session
+    return render_template("dashboard.html", username=session.get('username', 'Guest'), usertype=session.get('usertype','Corrupted'))  # Retrieve the username from the session
+
+@app.route("/manage")
+@login_required
+def manage():
+    return render_template("managedb.html", username=session.get('username', 'Guest'), usertype=session.get('usertype','Corrupted'))  # Retrieve the username from the session
 
 @app.route("/logout")
 @login_required  # Ensure that only logged-in users can access this route

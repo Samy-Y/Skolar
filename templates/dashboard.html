@@ -3,34 +3,137 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TYPE Dashboard</title>
+    <title>{{ usertype }} Dashboard</title>
 </head>
 <body>
     <header>
-        <h1> Dashboard</h1>
+        <h1>{{ usertype }} Dashboard</h1>
     </header>
-
+    
+    <!-- Navbar -->
+    <nav>
+        <ul>
+            <li><a href="#resources">Resources</a></li>
+            <li><a href="#grades">Grades</a></li>
+            <li><a href="#schedules">Schedules</a></li>
+            <li><a href="#additional-info">Additional Info</a></li>
+        </ul>
+    </nav>
+    
     <main>
+        <!-- Welcome Section -->
         <section>
-            <h2>Welcome, {{ username }}!</h2>
-            <p>VAR.</p>
+            <h2>Welcome, {{ usertype }} {{ username }}!</h2>
+            {% if usertype.lower() == "admin" %}
+                <p>You are logged in as an administrator. Your power on this website knows no limit.</p>
+                <p>Here are some actions you can perform:</p>
+                <ul>
+                    <li><a href="{{ url_for('manage') }}">Manage Students, Teachers and Uploads</a></li>
+                    <li><a href="#system-settings">System Settings</a></li>
+                </ul>
+            {% elif usertype.lower() == "teacher" %}
+                <p>You are logged in as a teacher. You can manage your classes and resources.</p>
+                <p>Here are some actions you can perform:</p>
+                <ul>
+                    <li><a href="#manage-classes">Manage Classes</a></li>
+                    <li><a href="#upload-lessons">Upload Lessons</a></li>
+                    <li><a href="#grade-submissions">Grade Submissions</a></li>
+                    <li><a href="#class-schedule">View Class Schedule</a></li>
+                </ul>
+            {% elif usertype.lower() == "student" %}
+                <p>You are logged in as a student. You have access to your classes and study materials.</p>
+                <p>Here are some actions you can perform:</p>
+                <ul>
+                    <li><a href="#download-materials">Download Study Materials</a></li>
+                    <li><a href="#view-grades">View Grades</a></li>
+                    <li><a href="#class-schedule">View Class Schedule</a></li>
+                    <li><a href="#additional-info">Access Additional Information</a></li>
+                </ul>
+            {% else %}
+                <p>If you see this, please contact an administrator <b>immediately</b>.</p>
+            {% endif %}
         </section>
-        <section>
-            <h3>Your Classes</h3>
-            <ul>
-                <li><a href="#class1">Class 1</a></li>
-                <li><a href="#class2">Class 2</a></li>
-                <li><a href="#class3">Class 3</a></li>
-            </ul>
-        </section>
-        <section>
-            <h3>Study Materials</h3>
-            <ul>
-                <li><a href="#material1">Material 1</a></li>
-                <li><a href="#material2">Material 2</a></li>
-                <li><a href="#material3">Material 3</a></li>
-            </ul>
-        </section>
+
+        <!-- Admin Sections -->
+        {% if usertype.lower() == "admin" %}
+            <section id="manage-students">
+                <h3>Manage Students</h3>
+                <p>Here you can add, edit, or remove student records.</p>
+                <!-- Links or forms to manage students -->
+            </section>
+
+            <section id="manage-teachers">
+                <h3>Manage Teachers</h3>
+                <p>Here you can add, edit, or remove teacher records.</p>
+                <!-- Links or forms to manage teachers -->
+            </section>
+
+            <section id="manage-uploads">
+                <h3>Manage Uploads</h3>
+                <p>View and manage all uploads on the platform.</p>
+                <!-- Links or forms to manage uploads -->
+            </section>
+
+            <section id="system-settings">
+                <h3>System Settings</h3>
+                <p>Configure system-wide settings and preferences.</p>
+                <!-- Links or forms to change system settings -->
+            </section>
+        {% endif %}
+
+        <!-- Teacher Sections -->
+        {% if usertype.lower() == "teacher" %}
+            <section id="manage-classes">
+                <h3>Manage Classes</h3>
+                <p>Here you can create and manage your classes.</p>
+                <!-- Links or forms to manage classes -->
+            </section>
+
+            <section id="upload-lessons">
+                <h3>Upload Lessons</h3>
+                <p>Upload lesson plans and materials for your students.</p>
+                <!-- Links or forms to upload lessons -->
+            </section>
+
+            <section id="grade-submissions">
+                <h3>Grade Submissions</h3>
+                <p>Review and grade student submissions.</p>
+                <!-- Links or forms to grade submissions -->
+            </section>
+
+            <section id="class-schedule">
+                <h3>View Class Schedule</h3>
+                <p>Check your class schedule and plan your lessons.</p>
+                <!-- Links or forms to view schedule -->
+            </section>
+        {% endif %}
+
+        <!-- Student Sections -->
+        {% if usertype.lower() == "student" %}
+            <section id="download-materials">
+                <h3>Download Study Materials</h3>
+                <p>Access and download study materials provided by your teachers.</p>
+                <!-- Links or forms to download materials -->
+            </section>
+
+            <section id="view-grades">
+                <h3>View Grades</h3>
+                <p>Check your grades and academic progress.</p>
+                <!-- Links or forms to view grades -->
+            </section>
+
+            <section id="class-schedule">
+                <h3>View Class Schedule</h3>
+                <p>Keep track of your classes and schedules.</p>
+                <!-- Links or forms to view schedule -->
+            </section>
+
+            <section id="additional-info">
+                <h3>Access Additional Information</h3>
+                <p>Find more details and resources for your courses.</p>
+                <!-- Links or forms to access additional information -->
+            </section>
+        {% endif %}
     </main>
 
     <footer>
