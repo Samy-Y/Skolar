@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+    <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Resource Upload</title>
+    
+    
+    </head>
+    <body>
+        <h1>Dashboard - Resource Upload</h1>
+        <form method=post enctype=multipart/form-data>
+            <input type=file name=file>
+            <select name="classlvl" id="clvl">
+                {% for clevel in classes_teached %}
+                    <option value="{{available_classes[clevel]}}">{{available_classes[clevel]}}</option>
+                {% endfor %}
+              </select>
+            <input type=submit value=Upload>
+        </form>
+        {% if success %}
+        <p>File uploaded successfully!</p>
+        {% endif %}
+    </body>
+
+</html>

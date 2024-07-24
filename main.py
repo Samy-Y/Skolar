@@ -15,6 +15,8 @@ login_manager.init_app(app)  # Initialize the LoginManager with the Flask app
 # Level 2: Teacher
 # Level 3: Student
 
+available_classes = ["CP","CE1","CE2","CM1","CM2","6e","1AC","2AC","3AC","TC","1Bac","2Bac"]
+
 # Database creation (resource management)
 def initRDB():
     conn = sqlite3.connect("resources.db")
@@ -62,7 +64,6 @@ def login():
     if request.method == "POST":
         # Get the username and password from the form
         username = request.form["username"]
-        print(username)
         password = request.form["password"]
         conn = sqlite3.connect('users.db')  # Connect to the SQLite database
         cursor = conn.cursor()
@@ -71,26 +72,40 @@ def login():
         user = cursor.fetchone()  # Fetch the user data
         conn.close()  # Close the connection
         if user:
+            print("User logged in!")
             # Create a User object and log in the user
-            user_obj = User(id=user[0], username=user[1], email=user[2], fname=user[3], usertype=user[4], password=user[5], birthdate=user[6], classlvl=user[7])
+            user_obj = User(id=user[0], 
+                            username=user[1], 
+                            email=user[2], 
+                            fname=user[3], 
+                            usertype=user[4], 
+                            password=user[5], 
+                            birthdate=user[6], 
+                            classlvl=user[7])
             login_user(user_obj)
-            session['user_id'] = user[0]
-            session['username'] = username # Store the user ID in the session
+            session['user_id'] = user[0] # Store the user ID in the session (i forgot why i should do that lmao)
+            session['username'] = username 
             session['fullname'] = user[3]
             session['usertype'] = user[4]
-            print(user[4])
+            session['user_classes'] = user[7]
             return redirect(url_for("dashboard"))  # Redirect to the dashboard
     return render_template("login.html")  # Render the login.html template
 
 @app.route("/dashboard")
 @login_required  # Ensure that only logged-in users can access this route
 def dashboard():
-    return render_template("dashboard.html", username=session.get('username', 'Guest'), usertype=session.get('usertype','Error'), f_name=session.get('fullname','Error'))  # Retrieve the username from the session
+    return render_template("dashboard.html",
+                           username=session.get('username', 'Guest'),
+                           usertype=session.get('usertype','Error'), 
+                           f_name=session.get('fullname','Error'))  # Retrieve the username from the session
 
 @app.route("/manage")
 @login_required
 def manage():
-    return render_template("managedb.html", username=session.get('username', 'Guest'), usertype=session.get('usertype','Error'), f_name=session.get('fullname','Error'))  # Retrieve the username from the session
+    return render_template("managedb.html",
+                           username=session.get('username', 'Guest'), 
+                           usertype=session.get('usertype','Error'), 
+                           f_name=session.get('fullname','Error'))  # Retrieve the username from the session
 
 # Set the upload folder and allowed extensions
 UPLOAD_FOLDER = 'uploads'
@@ -105,11 +120,10 @@ if not os.path.exists(UPLOAD_FOLDER):
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-@app.route("/resource_upload", methods=["GET", "POST"])
+@app.route("/upload", methods=["GET", "POST"])
 @login_required
-def resource_upload():
-    if session.get('usertype') < 2:
-        print('You do not have permission to access this page.')
+def upload():
+    if session.get('usertype') > 2:
         return redirect(url_for('dashboard'))
     
     if request.method == "POST":
@@ -118,7 +132,7 @@ def resource_upload():
             return redirect(request.url)
         
         file = request.files['file']
-        class_level = request.form.get('class_level')
+        class_level = request.form.get('classlvl')
         
         if file.filename == '':
             print('No selected file')
@@ -129,16 +143,27 @@ def resource_upload():
             filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             file.save(filepath)
             
-            # Save the file path and class level to the database
-            conn = sqlite3.connect('users.db')
+            conn = sqlite3.connect('resources.db')
             cursor = conn.cursor()
             cursor.execute("INSERT INTO resources (filename, class_level) VALUES (?, ?)", (filename, class_level))
             conn.commit()
             conn.close()
-            print("i need to create an alert()")
-            return redirect(url_for('dashboard'))
+            return redirect(url_for('upload',success=True))
+        
 
-    return render_template("resource_upload.html", username=session.get('username', 'Guest'), usertype=session.get('usertype', 'Error'), f_name=session.get('fullname', 'Error'))
+    if session.get('usertype') == 2:
+        classes_teached = (session.get('user_classes')).split(',')
+        classes_teached = map(int,classes_teached)
+    elif session.get('usertype') <2:
+        classes_teached = available_classes
+    success = request.args.get('success')  # Retrieve the 'success' query parameter
+    return render_template("resource_upload.html",
+                           username=session.get('username', 'Guest'),
+                           usertype=session.get('usertype', 'Error'),
+                           f_name=session.get('fullname', 'Error'),
+                           available_classes=available_classes, 
+                           classes_teached=classes_teached,success=success)
+
 
 @app.route("/logout")
 @login_required  # Ensure that only logged-in users can access this route
