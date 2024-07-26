@@ -11,14 +11,16 @@
     </header>
     
     <!-- Navbar -->
+    {% if usertype > 1 %}
     <nav>
         <ul>
-            <li><a href="#resources">Resources</a></li>
+            <li><a href="{{url_for('resources')}}">Resources</a></li>
             <li><a href="#grades">Grades</a></li>
             <li><a href="#schedules">Schedules</a></li>
             <li><a href="#additional-info">Additional Info</a></li>
         </ul>
     </nav>
+    {% endif %}
     
     <main>
         <!-- Welcome Section -->
