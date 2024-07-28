@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Articles</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <header>
+        <nav>
+            <h1>Blog</h1>
+            <ul>
+                <li><a href="{{ url_for('index') }}">Home</a></li>
+                {% if session.get('usertype', 3) < 2 %}
+                <li><a href="{{ url_for('create_article') }}">Create Article</a></li>
+                {% endif %}
+                <li><a href="{{ url_for('logout') }}">Log Out</a></li>
+            </ul>
+        </nav>
+    </header>
+    
+    <main class="container">
+        <h2>All Articles</h2>
+        <section class="articles">
+            {% for article in articles %}
+            <article>
+                <h3>{{ article.title }}</h3>
+                {% if article.thumbnail_url %}
+                <img src="{{ article.thumbnail_url }}" alt="Thumbnail for {{ article.title }}">
+                {% endif %}
+                <p>{{ article.content[:150] }}...</p>
+                <a href="{{ url_for('view_article', title=article.title) }}">Read More</a>
+            </article>
+            {% endfor %}
+        </section>
+    </main>
+    
+    <footer>
+        <p>© 2024 Our School. All rights reserved.</p>
+    </footer>
+</body>
+</html>

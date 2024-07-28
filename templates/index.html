@@ -4,31 +4,54 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>School Website</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
     <header>
-        <h1>Welcome to Our School</h1>
+        <h1>SkolarDemo</h1>
         <nav>
-            <a href="{{ url_for('login')}}"><button>Login to School Space</button></a>
+            <ul>
+                <li><a href="#about">About</a></li>
+                <li><a href="#programs">Programs</a></li>
+                <li><a href="#contact">Contact</a></li>
+                <li><a href="{{ url_for('login') }}">Login</a></li>
+            </ul>
         </nav>
     </header>
 
-    <main>
-        <section id="blog">
-            <h2>Blog Articles</h2>
-            <article>
-                <h3>Article 1</h3>
-                <p>This is the content of the first blog article.</p>
-            </article>
-            <article>
-                <h3>Article 2</h3>
-                <p>This is the content of the second blog article.</p>
-            </article>
+    <main class="container">
+        <section id="about">
+            <h2>About SkolarDemo</h2>
+            <p>SkolarDemo is dedicated to providing quality education and nurturing the potential of every student. We believe in creating a supportive and innovative learning environment.</p>
         </section>
 
-        <section id="student-space">
-            <h2>Student Space</h2>
-            <p>Welcome to the student space. Here you can find resources and information for students.</p>
+        <section id="programs">
+            <h2>Our Programs</h2>
+            <ul>
+                <li>Elementary Education</li>
+                <li>Middle School</li>
+                <li>High School</li>
+            </ul>
+        </section>
+
+        <section id="contact">
+            <h2>Contact Us</h2>
+            <p>Email: info@ourschool.edu</p>
+            <p>Phone: (123) 456-7890</p>
+            <p>Address: 123 Education Street, Learning City, ST 12345</p>
+        </section>
+
+        <section class="articles">
+            {% for article in articles %}
+            <article>
+                <h3>{{ article.title }}</h3>
+                {% if article.thumbnail_url %}
+                <img src="{{ article.thumbnail_url }}" alt="Thumbnail for {{ article.title }}">
+                {% endif %}
+                <p>{{ article.content[:150] }}...</p>
+                <a href="{{ url_for('view_article', title=article.title) }}">Read More</a>
+            </article>
+            {% endfor %}
         </section>
     </main>
 

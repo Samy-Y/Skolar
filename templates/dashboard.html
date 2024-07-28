@@ -4,71 +4,76 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
     <header>
-        <h1>Dashboard</h1>
+        {% if usertype > 1 %}
+        <nav>
+            <h1>Dashboard</h1>
+            <ul>
+                <li><a href="{{url_for('resource_view')}}">Resources</a></li>
+                <li><a href="#grades">Grades</a></li>
+                <li><a href="#schedules">Schedules</a></li>
+                <li><a href="#additional-info">Additional Info</a></li>
+                <li><a href="{{url_for('logout')}}">Log out</a></li>
+            </ul>
+        </nav>
+        {% else %}
+        <h1>Administration Panel</h1>
+        <nav>
+            <ul>
+                <li><a href="{{url_for('logout')}}">&larrhk; Log Out</a></li>
+            </ul>
+        </nav>
+        {% endif %}
     </header>
     
-    <!-- Navbar -->
-    {% if usertype > 1 %}
-    <nav>
-        <ul>
-            <li><a href="{{url_for('resources')}}">Resources</a></li>
-            <li><a href="#grades">Grades</a></li>
-            <li><a href="#schedules">Schedules</a></li>
-            <li><a href="#additional-info">Additional Info</a></li>
-        </ul>
-    </nav>
-    {% endif %}
-    
-    <main>
-        <!-- Welcome Section -->
-        <section>
+    <main class="container">
+        <section class="dashboard">
             {% if usertype == 0 %}
                 <h2>Welcome, administrator {{ f_name }}!</h2>
-                <p>You are logged in as an administrator. Your power on this website knows no limit.</p>
+                <p>You are logged in as an administrator.</p>
                 <p>Here are some actions you can perform:</p>
-                <ul>
-                    <li><a href="{{ url_for('manage') }}">Manage Students, Teachers and Uploads</a></li>
-                    <li><a href="#manage-blog">Manage Blog Posts</a></li>
-                    <li><a href="#system-settings">System Settings</a></li>
-                </ul>
+                <div class="button-grid">
+                    <a href="{{ url_for('manage') }}" class="dashboard-button">Manage Students, Teachers</a>
+                    <a href="{{url_for('resource_manage')}}" class="dashboard-button">Manage Uploads</a>
+                    <a href="{{url_for('create_article')}}" class="dashboard-button">Manage Blog Posts</a>
+                    <a href="#system-settings" class="dashboard-button">System Settings</a>
+                </div>
             {% elif usertype == 1 %}
                 <h2>Welcome, manager {{ f_name }}!</h2>
                 <p>You are logged in as a manager. You can manage blog posts and resources.</p>
                 <p>Here are some actions you can perform:</p>
-                <ul>
-                    <li><a href="#manage-classes">Manage Blog Posts</a></li>
-                    <li><a href="#upload-lessons">Upload Lessons</a></li>
-                    <li><a href="#grade-submissions">Grade Submissions</a></li>
-                    <li><a href="#class-schedule">View Class Schedule</a></li>
-                </ul>
+                <div class="button-grid three-buttons">
+                    <a href="#manage-classes" class="dashboard-button">Manage Blog Posts</a>
+                    <a href="#class-schedule" class="dashboard-button">Manage Class Schedule</a>
+                    <a href="#grade-submissions" class="dashboard-button">Grade Submissions</a>
+                </div>
             {% elif usertype == 2 %}
                 <h2>Welcome, teacher {{ f_name }}!</h2>
                 <p>You are logged in as a teacher. You can manage your classes and resources.</p>
                 <p>Here are some actions you can perform:</p>
-                <ul>
-                    <li><a href="#manage-classes">Manage Classes</a></li>
-                    <li><a href="#upload-lessons">Upload Lessons</a></li>
-                    <li><a href="#grade-submissions">Grade Submissions</a></li>
-                    <li><a href="#class-schedule">View Class Schedule</a></li>
-                </ul>
+                <div class="button-grid three-buttons">
+                    <a href="{{url_for('resource_manage')}}" class="dashboard-button">Upload Lessons</a>
+                    <a href="#grade-submissions" class="dashboard-button">Grade Submissions</a>
+                    <a href="#class-schedule" class="dashboard-button">View Class Schedule</a>
+                </div>
             {% elif usertype == 3 %}
+                <h2>Welcome, student {{ f_name }}!</h2>
                 <p>You are logged in as a student. You have access to your classes and study materials.</p>
                 <p>Here are some actions you can perform:</p>
-                <ul>
-                    <li><a href="#download-materials">Download Study Materials</a></li>
-                    <li><a href="#view-grades">View Grades</a></li>
-                    <li><a href="#class-schedule">View Class Schedule</a></li>
-                    <li><a href="#additional-info">Access Additional Information</a></li>
-                </ul>
+                <div class="button-grid">
+                    <a href="#download-materials" class="dashboard-button">Download Study Materials</a>
+                    <a href="#view-grades" class="dashboard-button">View Grades</a>
+                    <a href="#class-schedule" class="dashboard-button">View Class Schedule</a>
+                    <a href="#additional-info" class="dashboard-button">Access Additional Information</a>
+                </div>
             {% else %}
                 <p>If you see this, please contact an administrator <b>immediately</b>.</p>
             {% endif %}
         </section>
     </main>
-
     <footer>
         <p>© 2024 Our School. All rights reserved.</p>
     </footer>
