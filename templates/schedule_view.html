@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Schedule</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Your Schedule</h1>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('dashboard') }}">&larrhk; Return Home</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container">
+        {{ fullname }}, here is your schedule:
+        <table>
+            <thead>
+                <tr>
+                    <th>Class</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for schedule in schedules %}
+                <tr>
+                    <td>{{ schedule['class'] }}</td>
+                    <td>{{ schedule['time'] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Our School. All rights reserved.</p>
+    </footer>
+</body>
+</html>

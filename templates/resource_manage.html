@@ -9,14 +9,17 @@
 </head>
 <body>
     <header>
-        <h1>Upload Resource</h1>
+        <h1>Resource Management</h1>
+        <nav>
+            <ul>
+                <li><a href="{{url_for('dashboard')}}">&larrhk; Return Home</a></li>
+            </ul>
+        </nav>
     </header>
 
-    <nav>
-        <ul>
-            <li><a href="{{url_for('dashboard')}}">&larrhk; Return Home</a></li>
-        </ul>
-    </nav>
+    {% if request.args.get('failed') %}
+    <p class="warning">There was an error uploading your resource. Please make sure that the data is entered correctly.</p>
+    {% endif %}
 
     <main class="container">
         <form method="post" action="/upload" enctype="multipart/form-data">
@@ -44,12 +47,7 @@
                 </div>
                 {% endfor %}
             </fieldset>          
-
-            <div class="form-group">
-                <label for="resource-visibility">Visibility:</label>
-                <input type="checkbox" id="resource-visibility" name="visibility" value="1" checked required> Visible to Students
-            </div>
-
+            <input type="checkbox" id="resource-visibility" name="visibility" value="1" checked required> Visible to Students<br>
             <button type="submit">Upload Resource</button>
         </form>
 

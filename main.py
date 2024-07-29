@@ -132,8 +132,9 @@ def blog_articles():
 def view_article(title):
     # Render a specific article
     article = load_article(title)
+    print(article)
     if article:
-        return render_template("blog/article.html", article=article)
+        return render_template("blog/article.html", article_title=article['title'],article_content=str(article['content'].replace("\n","<br>")),article_date=article['date'],article_thumbnail_url=article['thumbnail_url'])
     else:
         flash("Article not found.", "danger")
         return redirect(url_for("blog_articles"))
@@ -155,7 +156,18 @@ def create_article():
             thumbnail_url = None
             if thumbnail:
                 filename = secure_filename(thumbnail.filename)
-                thumbnail.save(os.path.join(BLOG_DIR, filename))
+                file_path = os.path.join(BLOG_DIR+"/"+filename)
+
+                if os.path.isfile(file_path):
+                    name, ext = os.path.splitext(filename)
+                    i = 1
+                    while os.path.isfile(file_path):
+                        new_filename = f"{name}({i}){ext}"
+                        file_path = os.path.join(BLOG_DIR, new_filename)
+                        i += 1
+                    filename = new_filename
+
+                thumbnail.save(file_path)
                 thumbnail_url = url_for('static', filename=f'blog/{filename}')
 
             # Save article as JSON
@@ -204,7 +216,7 @@ def edit_article(title):
     
     article = load_article(title)
     if article:
-        return render_template("edit_article.html", article=article)
+        return render_template("blog/edit_article.html", article=article)
     else:
         flash("Article not found.", "danger")
         return redirect(url_for("manage_blog"))
@@ -223,6 +235,8 @@ def delete_article(title):
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    if session.get('authenticated'):
+        return redirect(url_for('dashboard'))
     if request.method == "POST":
         # Get the username and password from the form
         username = request.form["username"]
@@ -250,6 +264,7 @@ def login():
             session['fullname'] = user[3]
             session['usertype'] = user[4]
             session['user_classes'] = user[7]
+            session['authenticated'] = True
             if user[4] < 2:
                 session['user_classes'] = [x for x in range(1,13)]
             else:
@@ -506,10 +521,13 @@ def upload_resource():
         visibility = request.form.get('visibility') == '1'
         
         classes = []
-        for x in request.form.getlist('classes'):
-            classes.append(available_classes.index(x))
-        print(classes)
-        classes = ",".join(map(str, classes))
+        if request.form.getlist('classes'):
+            for x in request.form.getlist('classes'):
+                classes.append(available_classes.index(x))
+            print(classes)
+            classes = ",".join(map(str, classes))
+        else:
+            return redirect(url_for('resource_manage',failed='True'))
         
         author = session.get('fullname', 'Unknown')
 
@@ -606,7 +624,7 @@ def resource_manage():
                 'visibility': r[7]
             } for r in resources]
         except ValueError:
-            resource_list = []
+            print(resource_list)
             print("There was an error loading a few resources by",session['username'])
         return render_template("resource_manage.html", resources=resource_list,
                             user_classes=user_classes,
@@ -652,6 +670,7 @@ def system_info():
 def logout():
     logout_user()
     session.pop('user_id', None)  # Remove the user ID from the session
+    session.pop('authenticated', False)
     return redirect(url_for("index"))
 
 @app.route('/resource_view')
@@ -694,7 +713,220 @@ def resource_view():
 
     return render_template("resource_view.html", resources=resource_list, fullname = session.get('fullname'))
 
+def init_scheduleDB():
+    conn = sqlite3.connect('users.db')
+    cursor = conn.cursor()
+    
+    # Create schedule table if it doesn't exist
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS schedules (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        teacher_id INTEGER NOT NULL,
+        class TEXT NOT NULL,
+        time TEXT NOT NULL,
+        FOREIGN KEY (teacher_id) REFERENCES users(id)
+    )
+    ''')
+    
+    conn.commit()
+    conn.close()
+
+def get_all_schedules():
+    schedules = []
+    try:
+        with sqlite3.connect('users.db') as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT s.id, u.fname AS teacher, s.class, s.time
+                FROM schedules s
+                JOIN users u ON s.teacher_id = u.id
+            """)
+            schedules = cursor.fetchall()
+    except sqlite3.Error as e:
+        print(f"An error occurred: {e}")
+        
+    return schedules
+
+
+def add_schedule(teacher_id, class_name, time):
+    conn = sqlite3.connect('schedules.db')
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO schedules (teacher_id, class, time) VALUES (?, ?, ?)", (teacher_id, class_name, time))
+    conn.commit()
+    conn.close()
+
+def delete_schedule(schedule_id):
+    conn = sqlite3.connect('schedules.db')
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM schedules WHERE id = ?", (schedule_id,))
+    conn.commit()
+    conn.close()
+
+@app.route("/schedule_manage", methods=["GET", "POST"])
+@login_required
+def schedule_manage():
+    if session['usertype'] != 0:
+        return redirect(url_for('dashboard'))
+
+    if request.method == "POST":
+        teacher_id = request.form['teacher_id'] # aaaaactually it's teacher_fname 🤓
+        class_name = request.form['class']
+        time = request.form['time']
+        add_schedule(teacher_id, class_name, time)
+        return redirect(url_for('schedule_manage'))
+
+    schedules = get_all_schedules()
+    # Fetch all teachers for selection
+    conn = sqlite3.connect('users.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, fname FROM users WHERE usertype = 2")
+    teachers = cursor.fetchall()
+    print(teachers)
+    conn.close()
+
+    classes = available_classes  # Assuming available_classes contains the class names
+    
+    return render_template("schedule_manage.html", schedules=schedules, teachers=teachers, classes=classes)
+
+@app.route("/delete_schedule", methods=["POST"])
+@login_required
+def delete_schedule_route():
+    schedule_id = request.form['schedule_id']
+    delete_schedule(schedule_id)
+    return redirect(url_for('schedule_manage'))
+
+@app.route("/schedule_view")
+@login_required
+def schedule_view():
+    conn = sqlite3.connect('users.db')
+    cursor = conn.cursor()
+
+    if session['usertype'] == 2:  # Teacher view
+        cursor.execute("""
+            SELECT s.class, s.time, u.fname AS teacher
+            FROM schedules s
+            JOIN users u ON s.teacher_id = u.id
+            WHERE u.id = ?
+        """, (session['user_id'],))
+        schedules = cursor.fetchall()
+    elif session['usertype'] == 3:  # Student view
+        # Here you'd want to fetch relevant teachers for the student's classes
+        cursor.execute("""
+            SELECT s.class, s.time, u.fname AS teacher
+            FROM schedules s
+            JOIN users u ON s.teacher_id = u.id
+            WHERE s.class IN (SELECT classlvl FROM users WHERE id = ?)
+        """, (session['user_id'],))
+        schedules = cursor.fetchall()
+    else:
+        return redirect(url_for('dashboard'))
+
+    conn.close()
+    return render_template("schedule_view.html", schedules=schedules, fullname=session.get('fullname'))
+
+## GRADES AREA ##
+
+@app.route("/grades_view")
+@login_required
+def grades_view():
+    # Fetch grades for the logged-in student
+    student_username = session['username']
+    conn = sqlite3.connect('users.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT grade, author, date FROM grades WHERE student_username = ?", (student_username,))
+    grades = cursor.fetchall()
+    conn.close()
+    return render_template("grades_view.html", grades=grades)
+
+@app.route("/grades_manage", methods=["GET", "POST"])
+@login_required
+def grades_manage():
+    usertype = session.get('usertype')
+    if usertype == 2:  # Teacher
+        # Only fetch grades for students in the teacher's class
+        classlvl = session.get('user_classes')
+        conn = sqlite3.connect('users.db')
+        cursor = conn.cursor()
+        cursor.execute("SELECT student_username, grade, author, date FROM grades WHERE classlvl = ?", (classlvl,))
+        grades = cursor.fetchall()
+        conn.close()
+        return render_template("grades_manage.html", grades=grades, usertype=usertype)
+    
+    elif usertype == 0:  # Admin
+        conn = sqlite3.connect('users.db')
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM grades")  # Fetch all grades for Admin
+        grades = cursor.fetchall()
+        conn.close()
+
+        grades_list = [{
+            'student_username':g[0],
+            'grade':g[1],
+            'author':g[2],
+            'date': g[3],
+        } for g in grades]
+
+        print(grades_list)
+        return render_template("grades_manage.html", grades=grades, usertype=usertype)
+    
+    else:
+        abort(404)
+
+    abort(403)
+
+@app.route("/submit_grade", methods=["POST"])
+@login_required
+def submit_grade():
+    # Allow teachers to submit grades
+    teacher_id = session['user_id']
+    student_username = request.form['student_username']
+    grade = request.form['grade']
+    date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    conn = sqlite3.connect('users.db')
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO grades (student_username, grade, author, date) VALUES (?, ?, ?, ?)",
+                   (student_username, grade, session['fullname'], date))
+    conn.commit()
+    conn.close()
+    return redirect(url_for("grades_manage"))
+
+@app.route("/delete_grade", methods=["POST"])
+@login_required
+def delete_grade():
+    # Admin functionality to delete a grade
+    grade_id = request.form['grade_id']
+    conn = sqlite3.connect('users.db')
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM grades WHERE id = ?", (grade_id,))
+    conn.commit()
+    conn.close()
+    return redirect(url_for("grades_manage"))
+
+def initGradesDB():
+    # Connect to the SQLite database (it will be created if it doesn't exist)
+    conn = sqlite3.connect('users.db')
+    
+    # Create a cursor object to execute SQL commands
+    cursor = conn.cursor()
+    
+    # Create the grades table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS grades (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            student_username TEXT NOT NULL,
+            grade INTEGER NOT NULL,
+            author TEXT NOT NULL,
+            date TEXT NOT NULL
+        )
+    ''')
+    
+    # Commit the changes and close the connection
+    conn.commit()
+    conn.close()
 
 if __name__ == "__main__":
+    initGradesDB()
+    init_scheduleDB()
     init_resourceDB()
     app.run(host="0.0.0.0",debug=True) 

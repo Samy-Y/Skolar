@@ -31,7 +31,7 @@
                 <img src="{{ article.thumbnail_url }}" alt="Thumbnail for {{ article.title }}">
                 {% endif %}
                 <p>{{ article.content[:150] }}...</p>
-                <a href="{{ url_for('view_article', title=article.title) }}">Read More</a>
+                <a href="{{ url_for('view_article', title=article.title) }}" class="readmore">Read More</a>
             </article>
             {% endfor %}
         </section>
