@@ -3,45 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>School Website</title>
+    <title>All Articles</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='assets/favicon.ico') }}">
 </head>
 <body>
     <header>
-        <h1>SkolarDemo</h1>
         <nav>
+            <h1>Blog</h1>
             <ul>
-                <li><a href="#about">About</a></li>
-                <li><a href="#programs">Programs</a></li>
-                <li><a href="#contact">Contact</a></li>
-                <li><a href="{{ url_for('login') }}">Login</a></li>
+                <li><a href="{{ url_for('index') }}">Home</a></li>
+                {% if session.get('usertype', 3) < 2 %}
+                <li><a href="{{ url_for('create_article') }}">Create Article</a></li>
+                {% endif %}
+                <li><a href="{{ url_for('logout') }}">Log Out</a></li>
             </ul>
         </nav>
     </header>
-
+    
     <main class="container">
-        <section id="about">
-            <h2>About SkolarDemo</h2>
-            <p>SkolarDemo is dedicated to providing quality education and nurturing the potential of every student. We believe in creating a supportive and innovative learning environment.</p>
-        </section>
-
-        <section id="programs">
-            <h2>Our Programs</h2>
-            <ul>
-                <li>Elementary Education</li>
-                <li>Middle School</li>
-                <li>High School</li>
-            </ul>
-        </section>
-
-        <section id="contact">
-            <h2>Contact Us</h2>
-            <p>Email: info@ourschool.edu</p>
-            <p>Phone: (123) 456-7890</p>
-            <p>Address: 123 Education Street, Learning City, ST 12345</p>
-        </section>
-
+        <h2>All Articles</h2>
         <section class="articles">
             {% for article in articles %}
             <article>
@@ -55,7 +36,7 @@
             {% endfor %}
         </section>
     </main>
-
+    
     <footer>
         <p>© 2024 Our School. All rights reserved.</p>
     </footer>

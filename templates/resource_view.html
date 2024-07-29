@@ -5,17 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Resource View</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='assets/favicon.ico') }}">
 </head>
 <body>
     <header>
         <h1>Available Resources for {{fullname}}</h1>
+        <nav>
+            <ul>
+                <li><a href="{{url_for('dashboard')}}">&larrhk; Return Home</a></li>
+            </ul>
+        </nav>
     </header>
-
-    <nav>
-        <ul>
-            <li><a href="{{url_for('dashboard')}}">&larrhk; Return Home</a></li>
-        </ul>
-    </nav>
 
     <main class="container">
         {% if resources %}
@@ -26,7 +26,6 @@
                     <th>Author</th>
                     <th>Date</th>
                     <th>Description</th>
-                    <th>Classes</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -37,7 +36,6 @@
                     <td>{{ resource['author'] }}</td>
                     <td>{{ resource['date'] }}</td>
                     <td>{{ resource['description'] }}</td>
-                    <td>{{ resource['classes'] }}</td>
                     <td>
                         <a href="{{ resource['url'] }}" download><button>Download</button></a>
                     </td>

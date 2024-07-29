@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, abort
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 import sqlite3
 import os
@@ -6,10 +6,12 @@ import datetime
 from werkzeug.utils import secure_filename
 import json
 
+start = datetime.datetime.now()
+
 app = Flask(__name__)
-app.secret_key = 'something unique and secret'  # Secret key for session management
+app.secret_key = 'something unique and secret'
 login_manager = LoginManager()
-login_manager.init_app(app)  # Initialize the LoginManager with the Flask app
+login_manager.init_app(app) 
 
 # General information about the database:
 # User types:
@@ -19,6 +21,7 @@ login_manager.init_app(app)  # Initialize the LoginManager with the Flask app
 # Level 3: Student
 
 available_classes = ["CP","CE1","CE2","CM1","CM2","6e","1AC","2AC","3AC","TC","1Bac","2Bac"]
+# Index in DB starts at 1. Crappy ahh Database management system
 
 # Database creation (resource management)
 def init_resourceDB():
@@ -69,7 +72,7 @@ def load_user(user_id):
     return None  # Return None if the user is not found
 
 # Blog directory
-BLOG_DIR = './blog'
+BLOG_DIR = './static/blog'
 
 # Ensure the blog directory exists
 os.makedirs(BLOG_DIR, exist_ok=True)
@@ -81,55 +84,6 @@ def index():
     # Fetch the latest 4 articles
     articles = get_latest_articles(limit=4)
     return render_template("index.html", articles=articles)
-
-@app.route("/blog_articles")
-def blog_articles():
-    # Fetch all articles for the main blog page
-    articles = get_all_articles()
-    return render_template("blog_articles.html", articles=articles)
-
-@app.route("/article/<string:title>")
-def view_article(title):
-    # Render a specific article
-    article = load_article(title)
-    if article:
-        return render_template("article.html", article=article)
-    else:
-        flash("Article not found.", "danger")
-        return redirect(url_for("blog_articles"))
-
-@app.route("/create_article", methods=["GET", "POST"])
-@login_required
-def create_article():
-    if session.get('usertype') >= 2:
-        flash("You do not have permission to create articles.", "danger")
-        return redirect(url_for("dashboard"))
-
-    if request.method == "POST":
-        title = request.form.get("title")
-        content = request.form.get("content")
-        thumbnail = request.files.get("thumbnail")
-
-        if not title or not content:
-            flash("Title and content are required.", "danger")
-        else:
-            thumbnail_url = None
-            if thumbnail:
-                filename = secure_filename(thumbnail.filename)
-                thumbnail.save(os.path.join(BLOG_DIR, filename))
-                thumbnail_url = url_for('static', filename=f'blog/{filename}')
-
-            # Save article as JSON
-            article = {
-                "title": title,
-                "content": content,
-                "thumbnail_url": thumbnail_url
-            }
-            save_article(article)
-            flash("Article created successfully!", "success")
-            return redirect(url_for("dashboard"))
-
-    return render_template("create_article.html")
 
 def get_latest_articles(limit=4):
     articles = []
@@ -168,6 +122,105 @@ def save_article(article):
     with open(filepath, 'w') as file:
         json.dump(article, file)
 
+@app.route("/blog_articles")
+def blog_articles():
+    # Fetch all articles for the main blog page
+    articles = get_all_articles()
+    return render_template("blog/blog_articles.html", articles=articles)
+
+@app.route("/article/<string:title>")
+def view_article(title):
+    # Render a specific article
+    article = load_article(title)
+    if article:
+        return render_template("blog/article.html", article=article)
+    else:
+        flash("Article not found.", "danger")
+        return redirect(url_for("blog_articles"))
+
+@app.route("/create_article", methods=["GET", "POST"])
+@login_required
+def create_article():
+    if session.get('usertype') >= 2:
+        abort(404)
+
+    if request.method == "POST":
+        title = request.form.get("title")
+        content = request.form.get("content")
+        thumbnail = request.files.get("thumbnail")
+
+        if not title or not content:
+            flash("Title and content are required.", "danger")
+        else:
+            thumbnail_url = None
+            if thumbnail:
+                filename = secure_filename(thumbnail.filename)
+                thumbnail.save(os.path.join(BLOG_DIR, filename))
+                thumbnail_url = url_for('static', filename=f'blog/{filename}')
+
+            # Save article as JSON
+            article = {
+                "title": title,
+                "date": datetime.date.today().strftime("%d/%m/%Y"),
+                "author": session.get('fullname'),
+                "content": content,
+                "thumbnail_url": thumbnail_url
+            }
+            save_article(article)
+            return redirect(url_for("manage_blog",success=True,title=title))
+
+    return render_template("blog/create_article.html")
+
+@app.route("/manage_blog", methods=["GET"])
+@login_required
+def manage_blog():
+    articles = get_all_articles()
+    return render_template("blog/manage_blog.html", articles=articles)
+
+@app.route("/edit_article/<string:title>", methods=["GET", "POST"])
+@login_required
+def edit_article(title):
+    if request.method == "POST":
+        new_title = request.form.get("title")
+        new_content = request.form.get("content")
+        new_thumbnail = request.files.get("thumbnail")
+
+        article = load_article(title)
+        if article:
+            if new_thumbnail:
+                new_filename = secure_filename(new_thumbnail.filename)
+                new_thumbnail.save(os.path.join(BLOG_DIR, new_filename))
+                thumbnail_url = url_for('static', filename=f'blog/{new_filename}')
+                article['thumbnail_url'] = thumbnail_url
+
+            article['title'] = new_title
+            article['content'] = new_content
+            save_article(article)
+            flash("Article updated successfully!", "success")
+            return redirect(url_for("manage_blog"))
+        else:
+            flash("Article not found.", "danger")
+            return redirect(url_for("manage_blog"))
+    
+    article = load_article(title)
+    if article:
+        return render_template("edit_article.html", article=article)
+    else:
+        flash("Article not found.", "danger")
+        return redirect(url_for("manage_blog"))
+
+@app.route("/delete_article/<string:title>", methods=["POST"])
+@login_required
+def delete_article(title):
+    filename = f"{title}.json"
+    filepath = os.path.join(BLOG_DIR, filename)
+    if os.path.exists(filepath):
+        os.remove(filepath)
+        flash("Article deleted successfully!", "success")
+    else:
+        flash("Article not found.", "danger")
+    return redirect(url_for("manage_blog"))
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -196,24 +249,36 @@ def login():
             session['username'] = username 
             session['fullname'] = user[3]
             session['usertype'] = user[4]
+            session['user_classes'] = user[7]
             if user[4] < 2:
                 session['user_classes'] = [x for x in range(1,13)]
             else:
                 session['user_classes'] = user[7]
             return redirect(url_for("dashboard"))  # Redirect to the dashboard
+        else:
+            return redirect(url_for('login',failed=True))
     return render_template("login.html")  # Render the login.html template
 
 @app.route("/dashboard")
 @login_required  # Ensure that only logged-in users can access this route
 def dashboard():
-    return render_template("dashboard.html",
+    if session.get('usertype') == 3:
+        user_classes=session.get('user_classes')
+        name_user_class = available_classes[int(user_classes)]
+        return render_template("dashboard.html",
+                           username=session.get('username', 'Guest'),
+                           usertype=session.get('usertype','Error'),
+                           name_user_class=name_user_class,
+                           f_name=session.get('fullname','Error'))  # Retrieve the username from the session
+    else:
+        return render_template("dashboard.html",
                            username=session.get('username', 'Guest'),
                            usertype=session.get('usertype','Error'), 
                            f_name=session.get('fullname','Error'))  # Retrieve the username from the session
 
-@app.route("/manage", methods=['GET','POST'])
+@app.route("/manage_users", methods=['GET','POST'])
 @login_required
-def manage():
+def manage_users():
     if session['usertype'] == 0:
         # DATA FETCHING AREA
 
@@ -286,7 +351,7 @@ def manage():
             finally:
                 conn.close()
 
-            return redirect(url_for('manage'))
+            return redirect(url_for('manage_users'))
         
         def edit_student():
             student_username = request.form.get("student_username")
@@ -349,7 +414,7 @@ def manage():
             finally:
                 conn.close()
 
-            return redirect(url_for('manage'))
+            return redirect(url_for('manage_users'))
         
         def edit_teacher():
             teacher_username = request.form.get("teacher_username")
@@ -401,7 +466,7 @@ def manage():
                 edit_teacher()
             elif 'delete_teacher' in request.form:
                 delete_teacher()
-            return render_template("managedb.html",
+            return render_template("manage_users.html",
                             username=session.get('username', 'Guest'), 
                             usertype=session.get('usertype','Error'), 
                             f_name=session.get('fullname','Error'),
@@ -409,7 +474,7 @@ def manage():
                             students_list=all_students_dict,
                             available_classes=available_classes)
         
-        return render_template("managedb.html",
+        return render_template("manage_users.html",
                             username=session.get('username', 'Guest'), 
                             usertype=session.get('usertype','Error'), 
                             f_name=session.get('fullname','Error'),
@@ -424,7 +489,7 @@ def manage():
 
 DATABASE = 'resources.db'
 
-def get_db_connection():
+def get_rs_db_connection():
     conn = sqlite3.connect(DATABASE)
     conn.row_factory = sqlite3.Row
     return conn
@@ -451,7 +516,7 @@ def upload_resource():
         filepath = f'uploads/{file.filename}'
         file.save(filepath)
 
-        conn = get_db_connection()
+        conn = get_rs_db_connection()
         conn.execute(
             "INSERT INTO resources (url, title, author, date, description, classes, visibility) VALUES (?, ?, ?, datetime('now'), ?, ?, ?)",
             (filepath, title, author, description, classes, visibility)
@@ -469,7 +534,7 @@ def upload_resource():
 def delete_resource():
     resource_id = request.form['resource_id']
     
-    conn = get_db_connection()
+    conn = get_rs_db_connection()
     resource = conn.execute('SELECT url FROM resources WHERE id = ?', (resource_id,)).fetchone()
     print(resource)
     if resource:
@@ -492,7 +557,7 @@ def delete_resource():
 def change_visibility():
     resource_id = request.form['resource_id']
     
-    conn = get_db_connection()
+    conn = get_rs_db_connection()
     result = conn.execute('SELECT visibility FROM resources WHERE id = ?', (resource_id,)).fetchone()
     if result is not None:
         current_visibility = result['visibility']  # Or result[0] if using index
@@ -521,7 +586,7 @@ def resource_manage():
         if session['usertype'] == 2:
             cursor.execute("SELECT * FROM resources WHERE author = ?", (session['fullname'],))
             resources = cursor.fetchall()
-            user_classes = [available_classes[int(x)-1] for x in session.get('user_classes').split(',')]
+            user_classes = [available_classes[int(x)] for x in session.get('user_classes').split(',')]
         else:
             cursor.execute("SELECT * FROM resources")
             resources = cursor.fetchall()
@@ -550,6 +615,38 @@ def resource_manage():
         return redirect(url_for('dashboard'))
 
 
+@app.route("/system_info")
+@login_required
+def system_info():
+    if session.get('usertype') != 0:
+        abort(404)
+    
+    system_status = {
+        "uptime": (datetime.datetime.now() - start).seconds
+    }
+    user_db_cursor = sqlite3.connect("users.db").cursor()
+
+    total_users = len(user_db_cursor.execute("""SELECT id FROM users""").fetchall())
+    total_students = len(user_db_cursor.execute("""SELECT id FROM users WHERE usertype = 3""").fetchall())
+    total_teachers = len(user_db_cursor.execute("""SELECT id FROM users WHERE usertype = 2""").fetchall())
+    total_managers = len(user_db_cursor.execute("""SELECT id FROM users WHERE usertype = 1""").fetchall())
+    total_admins = len(user_db_cursor.execute("""SELECT id FROM users WHERE usertype = 0""").fetchall())
+
+    user_stats = {
+        "total_users": total_users,
+        "total_students": total_students,
+        "total_teachers": total_teachers,
+        "total_managers": total_managers,
+        "total_admins": total_admins
+    }
+    
+    system_info = {
+        "version": "1.0.0",
+    }
+    
+    return render_template("system_info.html", system_status=system_status, user_stats=user_stats, system_info=system_info)
+
+
 @app.route("/logout")
 @login_required
 def logout():
@@ -567,7 +664,7 @@ def resource_view():
     # Fetch the user's class level from the session
     user_classes = session.get('user_classes')
 
-    conn = get_db_connection()
+    conn = get_rs_db_connection()
     cursor = conn.cursor()
 
     # Fetch resources that match the student's classes and are visible

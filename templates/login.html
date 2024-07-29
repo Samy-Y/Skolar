@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='assets/favicon.ico') }}">
 </head>
 <body>
     <header>
@@ -28,6 +29,10 @@
             </div>
             <button type="submit">Login</button>
         </form>
+
+    {% if request.args.get('failed') %}
+    <p style="color: red;">Login failed. Please try again.</p>
+    {% endif %}
 
     </main>
     <footer>

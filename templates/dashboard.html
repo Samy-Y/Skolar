@@ -5,28 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='assets/favicon.ico') }}">
 </head>
 <body>
     <header>
-        {% if usertype > 1 %}
-        <nav>
-            <h1>Dashboard</h1>
-            <ul>
-                <li><a href="{{url_for('resource_view')}}">Resources</a></li>
-                <li><a href="#grades">Grades</a></li>
-                <li><a href="#schedules">Schedules</a></li>
-                <li><a href="#additional-info">Additional Info</a></li>
-                <li><a href="{{url_for('logout')}}">Log out</a></li>
-            </ul>
-        </nav>
-        {% else %}
-        <h1>Administration Panel</h1>
+        <h1>School Dashboard</h1>
         <nav>
             <ul>
                 <li><a href="{{url_for('logout')}}">&larrhk; Log Out</a></li>
             </ul>
         </nav>
-        {% endif %}
     </header>
     
     <main class="container">
@@ -36,10 +24,10 @@
                 <p>You are logged in as an administrator.</p>
                 <p>Here are some actions you can perform:</p>
                 <div class="button-grid">
-                    <a href="{{ url_for('manage') }}" class="dashboard-button">Manage Students, Teachers</a>
+                    <a href="{{ url_for('manage_users') }}" class="dashboard-button">Manage Students, Teachers</a>
                     <a href="{{url_for('resource_manage')}}" class="dashboard-button">Manage Uploads</a>
-                    <a href="{{url_for('create_article')}}" class="dashboard-button">Manage Blog Posts</a>
-                    <a href="#system-settings" class="dashboard-button">System Settings</a>
+                    <a href="{{url_for('manage_blog')}}" class="dashboard-button">Manage Blog Posts</a>
+                    <a href="{{url_for('system_info')}}" class="dashboard-button">System Information</a>
                 </div>
             {% elif usertype == 1 %}
                 <h2>Welcome, manager {{ f_name }}!</h2>
@@ -61,7 +49,7 @@
                 </div>
             {% elif usertype == 3 %}
                 <h2>Welcome, student {{ f_name }}!</h2>
-                <p>You are logged in as a student. You have access to your classes and study materials.</p>
+                <p>You are logged in as a student. You have access to your classes ({{name_user_class}}) and study materials.</p>
                 <p>Here are some actions you can perform:</p>
                 <div class="button-grid">
                     <a href="#download-materials" class="dashboard-button">Download Study Materials</a>

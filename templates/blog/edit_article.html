@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Article</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='assets/favicon.ico') }}">
+</head>
+<body>
+    <header>
+        <nav>
+            <h1>Edit Article</h1>
+            <ul>
+                <li><a href="{{ url_for('index') }}">Home</a></li>
+                <li><a href="{{ url_for('blog_articles') }}">All Articles</a></li>
+                <li><a href="{{ url_for('manage_blog') }}">Manage Blog Articles</a></li>
+                <li><a href="{{ url_for('logout') }}">Log Out</a></li>
+            </ul>
+        </nav>
+    </header>
+    
+    <main class="container">
+        <h2>Edit Blog Article</h2>
+        <form action="{{ url_for('edit_article', title=article.title) }}" method="post" enctype="multipart/form-data">
+            <label for="title">Title:</label>
+            <input type="text" id="title" name="title" value="{{ article.title }}" required>
+            
+            <label for="content">Content:</label>
+            <textarea id="content" name="content" rows="10" required>{{ article.content }}</textarea>
+            
+            <label for="thumbnail">Thumbnail:</label>
+            <input type="file" id="thumbnail" name="thumbnail" accept="image/*">
+            
+            <button type="submit">Update</button>
+        </form>
+    </main>
+    
+    <footer>
+        <p>© 2024 Our School. All rights reserved.</p>
+    </footer>
+</body>
+</html>
