@@ -14,6 +14,7 @@
             <ul>
                 <li><a href="{{url_for('dashboard')}}">&larrhk; Return Home</a></li>
                 <li><a href="{{url_for('create_article')}}">&plus; Create New Article</a></li>
+                <li><a href="{{url_for('blog_articles')}}">Blog Articles (User)</a></li>
             </ul>
         </nav>
     </header>
@@ -32,7 +33,7 @@
         <tbody>
             {% for article in articles %}
             <tr>
-                <td>{{ article.title }}</td>
+                <td>{{ article.title | safe }}</td>
                 <td>{{ article.date }}</td>
                 <td>{{ article.author }}</td>
                 <td>

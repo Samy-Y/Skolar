@@ -5,6 +5,7 @@ import os
 import datetime
 from werkzeug.utils import secure_filename
 import json
+import re
 
 start = datetime.datetime.now()
 
@@ -102,6 +103,8 @@ def get_all_articles():
         if filename.endswith(".json"):
             with open(os.path.join(BLOG_DIR, filename), 'r') as file:
                 article = json.load(file)
+                article['title'] = sanitize_filename(article['title'])
+                article['content'] = sanitize_filename(article['content'])
                 articles.append(article)
     # Sort articles by title
     articles.sort(key=lambda x: x["title"])
@@ -115,12 +118,40 @@ def load_article(title):
             return json.load(file)
     return None
 
+def sanitize_filename(title):
+    # Define replacements for forbidden characters with their HTML entity counterparts
+    replacements = {
+        '<': '&lt;',
+        '>': '&gt;',
+        ':': '&colon;',
+        '"': '&quot;',
+        '/': '&sol;',
+        '\\': '&bsol;',
+        '|': '&vert;',
+        '?': '&quest;',
+        '*': '&ast;',
+    }
+    
+    # Replace forbidden characters with their HTML entity counterparts
+    safe_title = re.sub(
+        r'[<>:"/\\|?*]', 
+        lambda match: replacements[match.group(0)], 
+        title
+    )
+    
+    return safe_title.strip()
+
 def save_article(article):
     title = article['title']
-    filename = f"{title}.json"
+    safe_title = sanitize_filename(title)  # Sanitize the title for a safe filename
+    filename = f"{safe_title}.json"
     filepath = os.path.join(BLOG_DIR, filename)
-    with open(filepath, 'w') as file:
-        json.dump(article, file)
+    try:
+        with open(filepath, 'w') as file:
+            json.dump(article, file, indent=4)  # Use indent for pretty printing
+        print(f"Article '{title}' saved successfully.")
+    except Exception as e:
+        print(f"Error saving article '{title}': {e}")
 
 @app.route("/blog_articles")
 def blog_articles():
@@ -130,11 +161,16 @@ def blog_articles():
 
 @app.route("/article/<string:title>")
 def view_article(title):
-    # Render a specific article
+    # Convert the sanitized title back to the original
     article = load_article(title)
-    print(article)
     if article:
-        return render_template("blog/article.html", article_title=article['title'],article_content=str(article['content'].replace("\n","<br>")),article_date=article['date'],article_thumbnail_url=article['thumbnail_url'])
+        return render_template(
+            "blog/article.html", 
+            article_title=article['title'],
+            article_content=article['content'].replace("\n", "<br>"),
+            article_date=article['date'],
+            article_thumbnail_url=article['thumbnail_url']
+        )
     else:
         flash("Article not found.", "danger")
         return redirect(url_for("blog_articles"))

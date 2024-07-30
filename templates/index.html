@@ -9,7 +9,7 @@
 </head>
 <body>
     <header class="mainheader">
-        <h1 class="text"></h1>
+        <h1 class="text"></h1> <!-- TEXT ANIMATION -->
         <nav>
             <ul>
                 <li><a href="#about">About</a></li>
@@ -21,41 +21,45 @@
     </header>
 
     <main class="containerindex">
-        <section id="about">
-            <h2>About SkolarDemo</h2>
-            <hr>
-            <p>SkolarDemo is dedicated to providing quality education and nurturing the potential of every student. We believe in creating a supportive and innovative learning environment.</p>
-        </section>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:3vh;">
+            <section id="about">
+                <h2>About SkolarDemo</h2>
+                <p>SkolarDemo is dedicated to providing quality education and nurturing the potential of every student. We believe in creating a supportive and innovative learning environment.</p>
+            </section>
 
-        <section id="programs">
-            <h2>Our Programs</h2>
-            <hr>
-            <ul>
-                <li>Elementary Education</li>
-                <li>Middle School</li>
-                <li>High School</li>
-            </ul>
-        </section>
+            <section id="programs">
+                <h2>Our Programs</h2>
+                <ul>
+                    <li>Elementary Education</li>
+                    <li>Middle School</li>
+                    <li>High School</li>
+                </ul>
+            </section>
+        </div>
 
         <section id="contact">
             <h2>Contact Us</h2>
-            <hr>
             <p>Email: info@ourschool.edu</p>
-            <p>Phone: (123) 456-7890</p>
+            <p>Phone: +212 0 00 00 00</p>
             <p>Address: 123 Education Street, Learning City, ST 12345</p>
         </section>
 
-        <section class="articles">
-            {% for article in articles %}
-            <article>
-                <h3>{{ article.title }}</h3>
-                {% if article.thumbnail_url %}
-                <img src="{{ article.thumbnail_url }}" alt="Thumbnail for {{ article.title }}">
-                {% endif %}
-                <p>{{ article.content[:150] }}...</p>
-                <a href="{{ url_for('view_article', title=article.title) }}" class="readmore">Read More</a>
-            </article>
-            {% endfor %}
+        <section>
+            <h2 style="text-align: center;">Articles</h2>
+            <section class="articles-home">
+                
+                {% for article in articles %}
+                <article>
+                    <h3>{{ article.title }}</h3>
+                    {% if article.thumbnail_url %}
+                    <img src="{{ article.thumbnail_url }}" alt="Thumbnail for {{ article.title }}">
+                    {% endif %}
+                    <p>{{ article.content[:120] }}...</p>
+                    <a href="{{ url_for('view_article', title=article.title) }}" class="readmore">Read More</a>
+                </article>
+                {% endfor %}
+            </section>
+            <a href="{{url_for('blog_articles')}}" style="text-decoration: none;"><button style="display: block; margin: 0 auto; font-size: larger;">View All Articles</button></a>
         </section>
     </main>
 
