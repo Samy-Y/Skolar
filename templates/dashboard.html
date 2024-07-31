@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='assets/favicon.ico') }}">
+</head>
+<body>
+    <header>
+        <h1>School Dashboard</h1>
+        <nav>
+            <ul>
+                <li><a href="{{url_for('logout')}}">&larrhk; Log Out</a></li>
+            </ul>
+        </nav>
+    </header>
+    
+    <main class="container">
+        <section class="dashboard">
+            {% if usertype == 0 %}
+                <h2>Welcome, administrator {{ f_name }}!</h2>
+                <p>You are logged in as an administrator.</p>
+                <div class="admin-button-grid">
+                    <a href="{{ url_for('manage_users') }}" class="dashboard-button">Manage Students, Teachers</a>
+                    <a href="{{url_for('resource_manage')}}" class="dashboard-button">Manage Uploads</a>
+                    <a href="{{url_for('manage_blog')}}" class="dashboard-button">Manage Blog Posts</a>
+                    <a href="{{url_for('schedule_manage')}}" class="dashboard-button">Manage Schedules</a>
+                    <a href="{{url_for('grades_manage')}}" class="dashboard-button">Manage Grades</a> 
+                    <a href="{{url_for('system_info')}}" class="dashboard-button">System Information</a>
+                </div>
+            {% elif usertype == 1 %}
+                <h2>Welcome, manager {{ f_name }}!</h2>
+                <p>You are logged in as a manager. You can manage blog posts and resources.</p>
+                <p>Here are some actions you can perform:</p>
+                <div class="button-grid three-buttons">
+                    <a href="{{url_for('manage_blog')}}" class="dashboard-button">Manage Blog Posts</a>
+                </div>
+            {% elif usertype == 2 %}
+                <h2>Welcome, teacher {{ f_name }}!</h2>
+                <p>You are logged in as a teacher. You can manage your classes and resources.</p>
+                <p>Here are some actions you can perform:</p>
+                <div class="button-grid three-buttons">
+                    <a href="{{url_for('resource_manage')}}" class="dashboard-button">Upload Lessons</a>
+                    <a href="{{url_for('grades_view')}}" class="dashboard-button">Grade Submissions</a>
+                    <a href="{{url_for('schedule_view')}}" class="dashboard-button">View Class Schedule</a>
+                </div>
+            {% elif usertype == 3 %}
+                <h2>Welcome, student {{ f_name }}!</h2>
+                <p>You are logged in as a student. You have access to your classes ({{name_user_class}}) and study materials.</p>
+                <p>Here are some actions you can perform:</p>
+                <div class="button-grid">
+                    <a href="{{url_for('resource_view')}}" class="dashboard-button">Download Study Materials</a>
+                    <a href="{{url_for('grades_view')}}" class="dashboard-button">View Grades</a>
+                    <a href="{{url_for('schedule_view')}}" class="dashboard-button">View Class Schedule</a>
+                </div>
+            {% else %}
+                <p>If you see this, please contact an administrator <b>immediately</b>.</p>
+            {% endif %}
+        </section>
+    </main>
+    <footer>
+        <p>© 2024 Our School. All rights reserved.</p>
+    </footer>
+</body>
+</html>

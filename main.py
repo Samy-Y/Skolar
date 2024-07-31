@@ -92,9 +92,9 @@ def get_latest_articles(limit=4):
         if filename.endswith(".json"):
             with open(os.path.join(BLOG_DIR, filename), 'r') as file:
                 article = json.load(file)
+                article['title'] = sanitize_filename(article['title'])
                 articles.append(article)
     # Sort articles by title for now
-    articles.sort(key=lambda x: x["title"])
     return articles[:limit]
 
 def get_all_articles():
@@ -284,7 +284,7 @@ def login():
         user = cursor.fetchone()  # Fetch the user data
         conn.close()  # Close the connection
         if user:
-            print(f"New login: {{username}}")
+            print(f"{username} has logged in!")
             # Create a User object and log in the user
             user_obj = User(id=user[0], 
                             username=user[1], 
@@ -313,6 +313,7 @@ def login():
 @app.route("/dashboard")
 @login_required  # Ensure that only logged-in users can access this route
 def dashboard():
+    print(f"{session.get('username')} has accessed the dashboard.")
     if session.get('usertype') == 3:
         user_classes=session.get('user_classes')
         name_user_class = available_classes[int(user_classes)]
@@ -398,7 +399,7 @@ def manage_users():
                             (username, email, name, 3, password, birthdate, classlvl))
                 conn.commit()
             except sqlite3.Error as e:
-                flash(f"An error occurred: {e}", "danger")
+                print(f"An error has occured while {session.get('username')} tried to add a student! \n"+e)
             finally:
                 conn.close()
 
@@ -461,7 +462,7 @@ def manage_users():
                 conn.commit()
                 flash("Teacher added successfully!", "success")
             except sqlite3.Error as e:
-                flash(f"An error occurred: {e}", "danger")
+                print(f"An error has occured while {session.get('username')} tried to add a teacher! \n"+e)
             finally:
                 conn.close()
 
@@ -695,7 +696,7 @@ def system_info():
     }
     
     system_info = {
-        "version": "1.0.0",
+        "version": "0.9.0",
     }
     
     return render_template("system_info.html", system_status=system_status, user_stats=user_stats, system_info=system_info)
@@ -704,15 +705,20 @@ def system_info():
 @app.route("/logout")
 @login_required
 def logout():
+    print(f"{session.get('username')} has logged out!")
     logout_user()
     session.pop('user_id', None)  # Remove the user ID from the session
+    session.pop('username', None)
+    session.pop('usertype', None)
+    session.pop('fullname', None)
+    session.pop('user_classes', None)
     session.pop('authenticated', False)
     return redirect(url_for("index"))
 
 @app.route('/resource_view')
 @login_required
 def resource_view():
-    if session['usertype'] != 3:
+    if session.get('usertype') != 3:
         # Redirect non-student users
         return redirect(url_for('resource_manage'))
 
@@ -939,14 +945,11 @@ def delete_grade():
     conn.close()
     return redirect(url_for("grades_manage"))
 
-def initGradesDB():
-    # Connect to the SQLite database (it will be created if it doesn't exist)
+def init_gradesDB():
     conn = sqlite3.connect('users.db')
     
-    # Create a cursor object to execute SQL commands
     cursor = conn.cursor()
     
-    # Create the grades table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS grades (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -957,12 +960,11 @@ def initGradesDB():
         )
     ''')
     
-    # Commit the changes and close the connection
     conn.commit()
     conn.close()
 
 if __name__ == "__main__":
-    initGradesDB()
+    init_gradesDB()
     init_scheduleDB()
     init_resourceDB()
     app.run(host="0.0.0.0",debug=True) 

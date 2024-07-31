@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School Website</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='assets/favicon.ico') }}">
+</head>
+<body>
+    <header class="mainheader">
+        <h1 class="text"></h1> <!-- TEXT ANIMATION -->
+        <h2 style="color: white;">Demo Website</h3>
+        <nav>
+            <ul>
+                <li><a href="#about">About</a></li>
+                <li><a href="#programs">Programs</a></li>
+                <li><a href="#contact">Contact</a></li>
+                <li><a href="{{ url_for('login') }}">Login</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="containerindex">
+        <div class="maininfos">
+            <section id="about">
+                <h2>About Skolar</h2>
+                <p>Skolar is a content management system that allows schools to efficiently manage their students, teachers etc. This demo website serves as a concrete example of what Skolar is capable of achieving.</p>
+            </section>
+
+            <section id="programs">
+                <h2>Our Goals</h2>
+                <ul>
+                    <li>Simplify</li>
+                    <li>Automate</li>
+                    <li>Secure</li>
+                    <li>Promote</li>
+                </ul>
+            </section>
+            <section id="contact">
+                <h2>Contact Us</h2>
+                <p>Email: youssoufinesamy@gmail.com</p>
+                <p>Phone: +212 6 64 98 01</p>
+                <p>GitHub: Samy-Y/Skolar</p>
+            </section>
+        </div>
+
+        <section>
+            <h2 style="text-align: center;">Articles</h2>
+            <div class="articles-home">
+                
+                {% for article in articles %}
+                <article>
+                    <h3>{{ article.title | safe}}</h3>
+                    {% if article.thumbnail_url %}
+                    <img src="{{ article.thumbnail_url }}" alt="Thumbnail for {{ article.title }}">
+                    {% endif %}
+                    <p>{{ article.content[:110] | safe}}...</p>
+                    <a href="{{ url_for('view_article', title=article.title) }}" class="readmore">Read More</a>
+                </article>
+                {% endfor %}
+            </div>
+            <a href="{{url_for('blog_articles')}}" style="text-decoration: none;"><button style="display: block; margin: 0 auto; font-size: larger;">View All Articles</button></a>
+        </section>
+    </main>
+
+    <footer>
+        <p>© 2024 Our School. All rights reserved.</p>
+    </footer>
+
+    <script src="../static/script.js"></script>
+</body>
+</html>

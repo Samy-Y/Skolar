@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Blog Articles</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='assets/favicon.ico') }}">
+</head>
+<body>
+    <header>
+        <h1>Manage Blog Articles</h1>
+        <nav>
+            <ul>
+                <li><a href="{{url_for('dashboard')}}">&larrhk; Return Home</a></li>
+                <li><a href="{{url_for('create_article')}}">&plus; Create New Article</a></li>
+                <li><a href="{{url_for('blog_articles')}}">Blog Articles (User)</a></li>
+            </ul>
+        </nav>
+    </header>
+    {% if success == True %}
+    <p>Article "{{title}}" created successfully!</p>
+    {% endif %}
+    <table>
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Creation Date</th>
+                <th>Author</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for article in articles %}
+            <tr>
+                <td>{{ article.title | safe }}</td>
+                <td>{{ article.date }}</td>
+                <td>{{ article.author }}</td>
+                <td>
+                    <a href="{{url_for('view_article',title=article.title)}}"><button>View Article</button></a>
+                    <form action="{{ url_for('edit_article', title=article.title) }}" method="get" style="display:inline;">
+                        <button type="submit">Edit</button>
+                    </form>
+                    <form action="{{ url_for('delete_article', title=article.title) }}" method="post" style="display:inline;">
+                        <button type="submit">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

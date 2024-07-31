@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resource Upload</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='assets/favicon.ico') }}">
+</head>
+<body>
+    <header>
+        <h1>Resource Management</h1>
+        <nav>
+            <ul>
+                <li><a href="{{url_for('dashboard')}}">&larrhk; Return Home</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    {% if request.args.get('failed') %}
+    <p class="warning">There was an error uploading your resource. Please make sure that the data is entered correctly.</p>
+    {% endif %}
+
+    <main class="container">
+        <form method="post" action="/upload" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="resource-title">Title:</label>
+                <input type="text" id="resource-title" name="title" required>
+            </div>
+
+            <div class="form-group">
+                <label for="resource-file">Select File:</label>
+                <input type="file" id="resource-file" name="file" accept=".txt,.pdf" required>
+            </div>
+
+            <div class="form-group">
+                <label for="resource-description">Description:</label>
+                <textarea id="resource-description" name="description" required></textarea>
+            </div>
+
+            <fieldset>
+                <legend>Select classes</legend>
+                {% for x in user_classes %}
+                <div style="display: flex; align-items: center;">
+                    <input type="checkbox" id="{{x}}" name="classes" value="{{x}}"/>
+                    <label for="{{x}}">{{x}}</label>
+                </div>
+                {% endfor %}
+            </fieldset>          
+            <input type="checkbox" id="resource-visibility" name="visibility" value="1" checked required> Visible to Students<br>
+            <button type="submit">Upload Resource</button>
+        </form>
+
+        <h2>Your Uploaded Resources</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    {% if usertype == 0 %}
+                    <th>Author</th>
+                    {% endif %}
+                    <th>Description</th>
+                    <th>Date</th>
+                    <th>Visibility</th>
+                    <th>Classes</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for resource in resources %}
+                <tr>
+                    <td>{{ resource['title'] }}</td>
+                    {% if usertype == 0 %}
+                    <td>{{ resource['author'] }}</td>
+                    {% endif %}
+                    <td>{{ resource['description'] }}</td>
+                    <td>{{ resource['date'] }}</td>
+                    <td>{{ 'Visible' if resource['visibility'] else 'Hidden' }}</td>
+                    <td>{{ resource['classes'] }}</td>
+                    <td>
+                        <a href="{{ resource['url'] }}" download><button>Download</button></a>
+                        <form method="post" action="/delete" style="display:inline;">
+                            <input type="hidden" name="resource_id" value="{{ resource['id'] }}">
+                            <button type="submit">Delete</button>
+                        </form>
+                        <form method="post" action="/change_visibility" style="display:inline;">
+                            <input type="hidden" name="resource_id" value="{{ resource['id'] }}">
+                            {% if resource['visibility'] == 1 %}
+                            <button type="submit">Hide resource</button>
+                            {% else %}
+                            <button type="submit">Make resource visible</button>
+                            {% endif %}
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </main>
+
+    <footer>
+        <p>© 2024 Our School. All rights reserved.</p>
+    </footer>
+</body>
+</html>
