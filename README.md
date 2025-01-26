@@ -3,7 +3,7 @@
 
 **SKOLAR** is an innovative CMS which allows schools to efficiently manage and distribute their resources. This project was created in under 10 hours for the 2024 Algorithmics Hackathon. Skolar relies on Flask and SQLite on the backend, and vanilla HTML/CSS/JS on the frontend. This was my first time interacting with Flask and SQL databases.
 
-![](https://i.imgur.com/JWKVDwD.gif)
+![](https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExdGU4ZHc1ajBwZzdud3pmNGIwazFpanpleG50bzZ4Y2t0bnI5dWoxeCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3KPMtFHoACj4dBaE0H/giphy.gif)
 
 ## Quick features overview
 
