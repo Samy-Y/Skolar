@@ -18,4 +18,4 @@ Skolar manages users by separating them into seperate roles, called "usertypes".
 - **Student (3)**: Can only access and view educational content specific to their classes.
 
 ### School content
-Teachers can upload school-related documents through the user panel and specify which classes may view the uploaded resource. Student can then access and download these documents. 
+Teachers can upload school-related documents through the user panel and specify which classes may view the uploaded resource. Students can then access and download these documents. 
